@@ -3,23 +3,42 @@ const server = express();
 const PORT = 3000;
 const pg = require('pg');
 
-const conString = 'postgres://postgres:toor@localhost:5432/practicedocker';
+const conString = {
+    database: 'practicedocker',
+    port: 5432,
+    host: 'localhost',
+    user: 'postgres',
+    password: 'toor'
+};
 
-server.listen(PORT, () => console.log(`Server running on ${PORT}`));
+var app = express();
 
-server.get('/', (req, res) => {
-    pg.connect(conString, function (err, client, done) {
+var pool = new pg.Pool(conString);
+
+app.use(function(req, res, next) {
+    pool.connect(function (err, client, done) {
         if (err) {
-            res.send('error fetching client from pool ' + err)
+            console.log('error fetching client from pool ', err)
         }
-        client.query('SELECT $1::varchar AS my_first_query', ['names'], function (err, result) {
-            done()
-    
-            if (err) {
-             return res.send('error happened during query '+err)
-            }
-            res.json(result.rows[0])
-            process.exit(0)
-        })
-    });
+    })
+    next();
 });
+
+app.get('/', (req, res, next) => {
+    (async () => {
+        const client = await pool.connect();
+        try {
+            const result = await client.query('INSERT INTO names (id, name) VALUES (DEFAULT, $1)', ['yay']);
+            res.json(result.rows[0])
+        } finally {
+            client.release()
+            next();
+        }
+    })().catch(e => console.log(e.stack));
+});
+
+app.use(function(req, res) {
+    // pool.end();
+});
+
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));
