@@ -3,7 +3,7 @@ const server = express();
 const PORT = 3000;
 const pg = require('pg');
 
-pg.connect('postgres://postgres:toor@localhost:5432/practicedocker');
+const conString = 'postgres://postgres:toor@localhost:5432/practicedocker';
 
 server.listen(PORT, () => console.log(`Server running on ${PORT}`));
 
