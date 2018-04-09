@@ -6,7 +6,7 @@ const pg = require('pg');
 const conString = {
     database: 'practicedocker',
     port: 5432,
-    host: 'localhost',
+    host: 'postgres',
     user: 'postgres',
     password: 'toor'
 };
